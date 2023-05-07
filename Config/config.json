@@ -1,5 +1,5 @@
 {
-    "moderators": ["discordId"],
+    "moderators": ["1003076282688491542"],
     "discord": {
         "bot_token": ""
     },
@@ -10,6 +10,6 @@
         "//": "Disabling global chat can help the server to perform faster as less resources are used.",
         "EnableGlobalChat": false
     },
-    "matchmakerIP": "127.0.0.1:80",
-    "gameServerIP": "127.0.0.1:7777"
+    "matchmakerIP": "10.10.1.72:80",
+    "gameServerIP": "10.10.1.72:3011"
 }
