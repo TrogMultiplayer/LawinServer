@@ -10,6 +10,6 @@
         "//": "Disabling global chat can help the server to perform faster as less resources are used.",
         "EnableGlobalChat": false
     },
-    "matchmakerIP": "10.10.1.72:80",
-    "gameServerIP": "10.10.1.72:3011"
+    "matchmakerIP": "167.172.182.35:80",
+    "gameServerIP": "hamsterrenw.ddns.net:3011"
 }
