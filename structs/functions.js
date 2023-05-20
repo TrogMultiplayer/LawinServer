@@ -2,6 +2,7 @@ const XMLBuilder = require("xmlbuilder");
 const uuid = require("uuid");
 const bcrypt = require("bcrypt");
 const fs = require("fs");
+const crypto = require("crypto");
 const path = require("path");
 
 const User = require("../model/user.js");
@@ -162,7 +163,7 @@ function getItemShop() {
             if (!Array.isArray(CatalogConfig[value].itemGrants)) continue;
             if (CatalogConfig[value].itemGrants.length == 0) continue;
             
-            const CatalogEntry = {"devName":"","offerId":"","fulfillmentIds":[],"dailyLimit":-1,"weeklyLimit":-1,"monthlyLimit":-1,"categories":[],"prices":[{"currencyType":"MtxCurrency","currencySubType":"","regularPrice":0,"finalPrice":0,"saleExpiration":"9999-12-02T01:12:00Z","basePrice":0}],"matchFilter":"","filterWeight":0,"appStoreId":[],"requirements":[],"offerType":"StaticPrice","giftInfo":{"bIsEnabled":false,"forcedGiftBoxTemplateId":"","purchaseRequirements":[],"giftRecordIds":[]},"refundable":false,"metaInfo":[],"displayAssetPath":"","itemGrants":[],"sortPriority":0,"catalogGroupPriority":0};
+            const CatalogEntry = {"devName":"","offerId":"","fulfillmentIds":[],"dailyLimit":-1,"weeklyLimit":-1,"monthlyLimit":-1,"categories":[],"prices":[{"currencyType":"MtxCurrency","currencySubType":"","regularPrice":0,"finalPrice":0,"saleExpiration":"9999-12-02T01:12:00Z","basePrice":0}],"matchFilter":"","filterWeight":0,"appStoreId":[],"requirements":[],"offerType":"StaticPrice","giftInfo":{"bIsEnabled":true,"forcedGiftBoxTemplateId":"","purchaseRequirements":[],"giftRecordIds":[]},"refundable":false,"metaInfo":[],"displayAssetPath":"","itemGrants":[],"sortPriority":0,"catalogGroupPriority":0};
 
             let i = catalog.storefronts.findIndex(p => p.name == (value.toLowerCase().startsWith("daily") ? "BRDailyStorefront" : "BRWeeklyStorefront"));
             if (i == -1) continue;
@@ -170,9 +171,6 @@ function getItemShop() {
             for (let itemGrant of CatalogConfig[value].itemGrants) {
                 if (typeof itemGrant != "string") continue;
                 if (itemGrant.length == 0) continue;
-                
-                CatalogEntry.devName = CatalogConfig[value].itemGrants[0];
-                CatalogEntry.offerId = CatalogConfig[value].itemGrants[0];
 
                 CatalogEntry.requirements.push({ "requirementType": "DenyOnItemOwnership", "requiredId": itemGrant, "minQuantity": 1 });
                 CatalogEntry.itemGrants.push({ "templateId": itemGrant, "quantity": 1 });
@@ -187,7 +185,14 @@ function getItemShop() {
                 "basePrice": CatalogConfig[value].price
             }];
 
-            if (CatalogEntry.itemGrants.length > 0) catalog.storefronts[i].catalogEntries.push(CatalogEntry);
+            if (CatalogEntry.itemGrants.length > 0) {
+                let uniqueIdentifier = crypto.createHash("sha1").update(`${JSON.stringify(CatalogConfig[value].itemGrants)}_${CatalogConfig[value].price}`).digest("hex");
+
+                CatalogEntry.devName = uniqueIdentifier;
+                CatalogEntry.offerId = uniqueIdentifier;
+
+                catalog.storefronts[i].catalogEntries.push(CatalogEntry);
+            }
         }
     } catch {}
 
@@ -301,6 +306,14 @@ function DecodeBase64(str) {
     return Buffer.from(str, 'base64').toString();
 }
 
+function UpdateTokens() {
+    fs.writeFileSync("./tokenManager/tokens.json", JSON.stringify({
+        accessTokens: global.accessTokens,
+        refreshTokens: global.refreshTokens,
+        clientTokens: global.clientTokens
+    }, null, 2));
+}
+
 module.exports = {
     sleep,
     GetVersionInfo,
@@ -312,5 +325,6 @@ module.exports = {
     sendXmppMessageToId,
     getPresenceFromUser,
     registerUser,
-    DecodeBase64
+    DecodeBase64,
+    UpdateTokens
 }
